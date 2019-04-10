@@ -4,11 +4,14 @@ properties([
         [
                 $class: 'GithubProjectProperty',
                 displayName: 'Evidence Stitching App',
-                projectUrlStr: 'https://github.com/hmcts/rap-em-stitching-api'
+                projectUrlStr: 'https://github.com/hmcts/rpa-em-stitching-api'
         ],
         pipelineTriggers([
                 [$class: 'GitHubPushTrigger']
-        ])
+        ]),
+        parameters([
+                choice(name: 'ENVIRONMENT', choices: 'saat\nsprod\nsandbox', description: 'Environment where code should be build and deployed')
+        ]),
 ])
 
 @Library("Infrastructure")
@@ -16,11 +19,14 @@ properties([
 def type = "java"
 def product = "em"
 def component = "stitching"
-def vault = "rpa"
-def channel = '#rpa-pipeline'
 
-List<LinkedHashMap<String, Object>> secrets = [
-        secret('em-s2s-token', 'FUNCTIONAL_TEST_CLIENT_S2S_TOKEN')
+def secrets = [
+        's2s-${env}': [
+                secret('microservicekey-em-gw', 'FUNCTIONAL_TEST_CLIENT_S2S_TOKEN')
+        ],
+        'rpa-${env}': [
+                secret('show-oauth2-token', 'FUNCTIONAL_TEST_CLIENT_OAUTH_SECRET')
+        ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
@@ -32,26 +38,13 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withPipeline(type , product, component) {
-    enableSlackNotifications(channel)
+def vaultOverrides = [
+        'preview' : 'aat',
+        'spreview': 'saat'
+]
+
+withParameterizedPipeline(type, product, component, params.ENVIRONMENT, 'sandbox') {
     enableDbMigration()
+    overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
-    setVaultName(vault)
-
-    after('checkout') {
-        echo '${product}-${component} out'
-        sh '''
-mkdir -p application/src/main/resources/META-INF
-echo "allprojects { task printVersionInit { doLast { println project.version } } }" > init.gradle
-
-tee application/src/main/resources/META-INF/build-info.properties <<EOF 2>/dev/null
-build.version=$(./gradlew -q printVersion)
-build.number=${BUILD_NUMBER}
-build.commit=$(git rev-parse HEAD)
-build.date=$(date)
-EOF
-
-'''
-    }
-
 }

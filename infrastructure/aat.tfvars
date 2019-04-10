@@ -1,1 +1,1 @@
-idam_api_url = "https://preprod-idamapi.reform.hmcts.net:3511"
+idam_api_base_uri = "https://idam-api.aat.platform.hmcts.net"

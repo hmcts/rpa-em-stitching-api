@@ -328,4 +328,34 @@
         <gav regex="true">^org\.springframework\.boot:spring-boot-starter-batch:.*$</gav>
         <cve>CVE-2019-3774</cve>
     </suppress>
+    <suppress>
+        <notes>See https://github.com/FasterXML/jackson-modules-java8/issues/90#issuecomment-450544881</notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2015-0201</cve>
+    </suppress>
+    <suppress>
+        <notes>See https://github.com/FasterXML/jackson-modules-java8/issues/90#issuecomment-450544881</notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2015-3192</cve>
+    </suppress>
+    <suppress>
+        <notes>No newer release available</notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2018-1260</cve>
+    </suppress>
+    <suppress>
+        <notes>No newer release available</notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2011-2731</cve>
+    </suppress>
+    <suppress>
+        <notes>No newer release available</notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2012-5055</cve>
+    </suppress>
+    <suppress>
+        <notes>No newer release available</notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2011-2732</cve>
+    </suppress>
 </suppressions>
