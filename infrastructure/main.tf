@@ -77,6 +77,10 @@ module "app" {
     # Toggles
     ENABLE_IDAM_HEALTH_CHECK = "${var.enable_idam_healthcheck}"
     ENABLE_S2S_HEALTH_CHECK = "${var.enable_s2s_healthcheck}"
+
+    DOCMOSIS_ENDPOINT = "${var.docmosis_uri}"
+
+    WEBSITE_DNS_SERVER = "${var.dns_server}"
   }
 }
 
