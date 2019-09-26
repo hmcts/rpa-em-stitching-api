@@ -19,7 +19,7 @@ spring:
     enabled: ${ENABLE_LIQUIBASE:false}
     change-log: classpath:/db/db.changelog-master.xml
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5431/emstitch}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5678/emstitch}
     username: ${SPRING_DATASOURCE_USERNAME:emstitch}
     password: ${SPRING_DATASOURCE_PASSWORD:emstitch}
     tomcat:
@@ -114,3 +114,5 @@ app-insights:
 
 dm-store-app:
   base-url: ${DM_STORE_APP_URL:http://localhost:4603}
+server:
+  port: 4630
