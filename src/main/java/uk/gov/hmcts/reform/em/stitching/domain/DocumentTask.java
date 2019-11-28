@@ -9,6 +9,7 @@ import java.util.Objects;
 /**
  * A DocumentTask.
  */
+
 @Entity
 @Table(name = "versioned_document_task")
 public class DocumentTask extends AbstractAuditingEntity implements Serializable {
@@ -127,5 +128,11 @@ public class DocumentTask extends AbstractAuditingEntity implements Serializable
 
     public void setCallback(Callback callback) {
         this.callback = callback;
+    }
+
+    public String toString() {
+        return "DocumentTask(id=" + this.getId() + ", bundle=" + this.getBundle() + ", taskState="
+                + this.getTaskState() + ", failureDescription=" + this.getFailureDescription() + ", jwt="
+                + this.getJwt() + ", callback=" + this.getCallback() + ", version=" + this.getVersion() + ")";
     }
 }

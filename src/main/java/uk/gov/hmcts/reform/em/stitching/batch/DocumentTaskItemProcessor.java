@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.em.stitching.batch;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -8,11 +9,11 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.em.stitching.domain.BundleDocument;
 import uk.gov.hmcts.reform.em.stitching.domain.DocumentTask;
 import uk.gov.hmcts.reform.em.stitching.domain.enumeration.TaskState;
-import uk.gov.hmcts.reform.em.stitching.pdf.PDFCoversheetService;
 import uk.gov.hmcts.reform.em.stitching.pdf.PDFMerger;
 import uk.gov.hmcts.reform.em.stitching.service.DmStoreDownloader;
 import uk.gov.hmcts.reform.em.stitching.service.DmStoreUploader;
 import uk.gov.hmcts.reform.em.stitching.service.DocumentConversionService;
+import uk.gov.hmcts.reform.em.stitching.template.TemplateRenditionClient;
 
 import java.io.File;
 import java.util.Map;
@@ -26,31 +27,35 @@ public class DocumentTaskItemProcessor implements ItemProcessor<DocumentTask, Do
     private final DmStoreDownloader dmStoreDownloader;
     private final DmStoreUploader dmStoreUploader;
     private final DocumentConversionService documentConverter;
-    private final PDFCoversheetService coversheetService;
     private final PDFMerger pdfMerger;
+    private final TemplateRenditionClient templateRenditionClient;
 
     public DocumentTaskItemProcessor(DmStoreDownloader dmStoreDownloader,
                                      DmStoreUploader dmStoreUploader,
                                      DocumentConversionService documentConverter,
-                                     PDFCoversheetService coversheetService,
-                                     PDFMerger pdfMerger) {
+                                     PDFMerger pdfMerger,
+                                     TemplateRenditionClient templateRenditionClient) {
         this.dmStoreDownloader = dmStoreDownloader;
         this.dmStoreUploader = dmStoreUploader;
         this.documentConverter = documentConverter;
-        this.coversheetService = coversheetService;
         this.pdfMerger = pdfMerger;
+        this.templateRenditionClient = templateRenditionClient;
     }
 
     @Override
     public DocumentTask process(DocumentTask documentTask) {
         try {
+            final File coverPageFile = StringUtils.isNotBlank(documentTask.getBundle().getCoverpageTemplate())
+                ? templateRenditionClient.renderTemplate(
+                documentTask.getBundle().getCoverpageTemplate(),
+                documentTask.getBundle().getCoverpageTemplateData()) : null;
+
             Map<BundleDocument, File> bundleFiles = dmStoreDownloader
                 .downloadFiles(documentTask.getBundle().getSortedDocuments())
                 .map(unchecked(documentConverter::convert))
-                .map(unchecked(docs -> documentTask.getBundle().hasCoversheets() ? coversheetService.addCoversheet(docs) : docs))
                 .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
 
-            final File outputFile = pdfMerger.merge(documentTask.getBundle(), bundleFiles);
+            final File outputFile = pdfMerger.merge(documentTask.getBundle(), bundleFiles, coverPageFile);
 
             dmStoreUploader.uploadFile(outputFile, documentTask);
 

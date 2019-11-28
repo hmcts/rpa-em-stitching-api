@@ -115,9 +115,6 @@ variable "enable_s2s_healthcheck" {
 ////////////////////////////////////////////////
 // Whitelists
 ////////////////////////////////////////////////
-variable "s2s_names_whitelist" {
-  default = "jui_webapp,em_ccd_orchestrator,em_gw"
-}
 
 variable "case_worker_roles" {
   default = "caseworker-probate,caseworker-cmc,caseworker-sscs,caseworker-divorce"
@@ -130,7 +127,14 @@ variable "docmosis_uri" {
   default = "https://docmosis-development.platform.hmcts.net/rs/convert"
 }
 
+variable "docmosis_render_uri" {
+  default = "https://docmosis-development.platform.hmcts.net/rs/render"
+}
+
 variable "dns_server" {
   type = "string"
 }
 
+variable "managed_identity_object_id" {
+  default = ""
+}
