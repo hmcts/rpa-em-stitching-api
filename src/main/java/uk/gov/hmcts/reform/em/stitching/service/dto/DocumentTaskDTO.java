@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.em.stitching.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import uk.gov.hmcts.reform.em.stitching.domain.enumeration.TaskState;
 
@@ -12,6 +14,8 @@ import java.util.Objects;
 /**
  * A DTO for the DocumentTask entity.
  */
+@Getter
+@Setter
 @ToString(callSuper = true)
 public class DocumentTaskDTO extends AbstractAuditingDTO implements Serializable {
 
@@ -29,54 +33,6 @@ public class DocumentTaskDTO extends AbstractAuditingDTO implements Serializable
 
     @JsonIgnore
     private String jwt;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public BundleDTO getBundle() {
-        return bundle;
-    }
-
-    public void setBundle(BundleDTO bundle) {
-        this.bundle = bundle;
-    }
-
-    public TaskState getTaskState() {
-        return taskState;
-    }
-
-    public void setTaskState(TaskState taskState) {
-        this.taskState = taskState;
-    }
-
-    public String getFailureDescription() {
-        return failureDescription;
-    }
-
-    public void setFailureDescription(String failureDescription) {
-        this.failureDescription = failureDescription;
-    }
-
-    public String getJwt() {
-        return jwt;
-    }
-
-    public void setJwt(String jwt) {
-        this.jwt = jwt;
-    }
-
-    public CallbackDto getCallback() {
-        return callback;
-    }
-
-    public void setCallback(CallbackDto callback) {
-        this.callback = callback;
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.em.stitching.service.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import uk.gov.hmcts.reform.em.stitching.domain.enumeration.CallbackState;
 import uk.gov.hmcts.reform.em.stitching.domain.validation.CallableEndpoint;
@@ -11,6 +13,8 @@ import java.util.Objects;
 /**
  * A DTO for the DocumentTask entity.
  */
+@Getter
+@Setter
 @ToString(callSuper = true)
 public class CallbackDto extends AbstractAuditingDTO implements Serializable {
 
@@ -23,38 +27,6 @@ public class CallbackDto extends AbstractAuditingDTO implements Serializable {
     @NotNull
     @CallableEndpoint
     private String callbackUrl;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFailureDescription() {
-        return failureDescription;
-    }
-
-    public void setFailureDescription(String failureDescription) {
-        this.failureDescription = failureDescription;
-    }
-
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-
-    public void setCallbackUrl(String callbackUrl) {
-        this.callbackUrl = callbackUrl;
-    }
-
-    public CallbackState getCallbackState() {
-        return callbackState;
-    }
-
-    public void setCallbackState(CallbackState callbackState) {
-        this.callbackState = callbackState;
-    }
 
     @Override
     public boolean equals(Object o) {

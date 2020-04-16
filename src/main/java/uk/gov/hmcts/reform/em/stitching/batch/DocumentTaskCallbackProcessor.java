@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.em.stitching.batch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.em.stitching.service.mapper.DocumentTaskMapper;
 
 import java.io.IOException;
 
+@RequiredArgsConstructor
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class DocumentTaskCallbackProcessor implements ItemProcessor<DocumentTask, DocumentTask> {
@@ -36,13 +38,6 @@ public class DocumentTaskCallbackProcessor implements ItemProcessor<DocumentTask
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    public DocumentTaskCallbackProcessor(OkHttpClient okHttpClient, AuthTokenGenerator authTokenGenerator,
-                                         DocumentTaskMapper documentTaskMapper, ObjectMapper objectMapper) {
-        this.okHttpClient = okHttpClient;
-        this.authTokenGenerator = authTokenGenerator;
-        this.documentTaskMapper = documentTaskMapper;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public DocumentTask process(DocumentTask documentTask) {
