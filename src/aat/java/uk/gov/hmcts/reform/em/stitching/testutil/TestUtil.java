@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.em.stitching.testutil;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
@@ -14,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.em.stitching.domain.DocumentImage;
+import uk.gov.hmcts.reform.em.stitching.domain.enumeration.ImageRendering;
+import uk.gov.hmcts.reform.em.stitching.domain.enumeration.ImageRenderingLocation;
 import uk.gov.hmcts.reform.em.stitching.service.dto.BundleDTO;
 import uk.gov.hmcts.reform.em.stitching.service.dto.BundleDocumentDTO;
 import uk.gov.hmcts.reform.em.stitching.service.dto.BundleFolderDTO;
@@ -110,6 +114,16 @@ public class TestUtil {
         return bundle;
     }
 
+    public BundleDTO getTestBundleforFailure() throws IOException {
+        ObjectMapper mapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        final File bundleJsonFile = new File(ClassLoader.getSystemResource("bundle.json").getPath());
+        BundleDTO bundle = mapper.readValue(bundleJsonFile, BundleDTO.class);
+
+        return bundle;
+    }
+
     public BundleDTO getTestBundleWithOnePageDocuments() {
         BundleDTO bundle = new BundleDTO();
         bundle.setBundleTitle("Bundle Title");
@@ -117,6 +131,19 @@ public class TestUtil {
         List<BundleDocumentDTO> docs = new ArrayList<>();
         docs.add(getTestBundleDocument(uploadDocument("Document1.pdf"), "Document 1"));
         docs.add(getTestBundleDocument(uploadDocument("Document2.pdf"), "Document 2"));
+        bundle.setDocuments(docs);
+
+        return bundle;
+    }
+
+    public BundleDTO getTestBundleWithLargeToc() {
+        BundleDTO bundle = new BundleDTO();
+        bundle.setBundleTitle("Bundle Title");
+        bundle.setDescription("This is the description of the bundle: it is great.");
+        List<BundleDocumentDTO> docs = new ArrayList<>();
+        docs.add(getTestBundleDocument(uploadDocument("five-hundred-page.pdf"), "Document 3"));
+        docs.add(getTestBundleDocument(uploadDocument("annotationTemplate.pdf"), "Document 4"));
+        docs.add(getTestBundleDocument(uploadDocument("SamplePDF_special_characters.pdf"), "Document 5"));
         bundle.setDocuments(docs);
 
         return bundle;
@@ -171,14 +198,55 @@ public class TestUtil {
         return bundle;
     }
 
+    public BundleDTO getTestBundleWithExcelAndPptDoc() {
+        BundleDTO bundle = new BundleDTO();
+        bundle.setBundleTitle("Bundle of Excel and PPT Documents");
+        bundle.setDescription("This bundle contains PPT and Excel documents that have been converted by Docmosis.");
+        List<BundleDocumentDTO> docs = new ArrayList<>();
+        docs.add(getTestBundleDocument(uploadDocument(), "Test PDF"));
+        docs.add(getTestBundleDocument(uploadWordDocument("wordDocument.doc"), "Test Word Document"));
+        docs.add(getTestBundleDocument(uploadDocX("largeDocument.docx"), "Test Word Document"));
+        docs.add(getTestBundleDocument(uploadPptx("Performance_Out.pptx"), "Test PPTX"));
+        docs.add(getTestBundleDocument(uploadXlsx("TestExcelConversion.xlsx"), "Test XLSX"));
+        docs.add(getTestBundleDocument(uploadXls("XLSsample.xls"), "Test XLS"));
+        docs.add(getTestBundleDocument(uploadXltx("Portable_XR_ReportTemplate.xltx"), "Test XLTX"));
+        docs.add(getTestBundleDocument(uploadPPT("potential_and_kinetic.ppt"), "Test PPT"));
+        docs.add(getTestBundleDocument(uploadPpsx("sample.ppsx"), "Test PPSX"));
+        bundle.setDocuments(docs);
+
+        return bundle;
+    }
+
     public BundleDTO getTestBundleWithImage() {
         BundleDTO bundle = new BundleDTO();
         bundle.setBundleTitle("Bundle with Image");
         bundle.setDescription("This bundle contains an Image that has been converted by pdfbox");
         List<BundleDocumentDTO> docs = new ArrayList<>();
-        docs.add(getTestBundleDocument(uploadDocument(), "Test PDF"));
+        docs.add(getTestBundleDocument(uploadDocument("one-page.pdf"), "Document 1"));
+        docs.add(getTestBundleDocument(uploadDocument("Document1.pdf"), "Document 2"));
         docs.add(getTestBundleDocument(uploadImage("flying-pig.jpg"), "Welcome to the flying pig"));
         bundle.setDocuments(docs);
+
+        return bundle;
+    }
+
+    public BundleDTO getTestBundleWithWatermarkImage() {
+        BundleDTO bundle = new BundleDTO();
+        bundle.setBundleTitle("Bundle with Image");
+        bundle.setDescription("This bundle contains an Image that has been converted by pdfbox");
+        List<BundleDocumentDTO> docs = new ArrayList<>();
+        docs.add(getTestBundleDocument(uploadDocument("one-page.pdf"), "Document 1"));
+        docs.add(getTestBundleDocument(uploadDocument("Document1.pdf"), "Document 2"));
+        docs.add(getTestBundleDocument(uploadImage("flying-pig.jpg"), "Welcome to the flying pig"));
+        bundle.setDocuments(docs);
+
+        DocumentImage documentImage = new DocumentImage();
+        documentImage.setDocmosisAssetId("hmcts.png");
+        documentImage.setImageRendering(ImageRendering.opaque);
+        documentImage.setImageRenderingLocation(ImageRenderingLocation.firstPage);
+        documentImage.setCoordinateX(50);
+        documentImage.setCoordinateY(50);
+        bundle.setDocumentImage(documentImage);
 
         return bundle;
     }
@@ -208,6 +276,92 @@ public class TestUtil {
             .getBody()
             .jsonPath()
             .get("_embedded.documents[0]._links.self.href");
+    }
+
+    private String uploadXls(String docName) {
+        return s2sAuthRequest()
+                .header("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE)
+                .multiPart("files", "test.xls", ClassLoader.getSystemResourceAsStream(docName), "application/vnd.ms-excel")
+                .multiPart("classification", "PUBLIC")
+                .request("POST", getDmApiUrl() + "/documents")
+                .getBody()
+                .jsonPath()
+                .get("_embedded.documents[0]._links.self.href");
+    }
+
+    private String uploadXltx(String docName) {
+        return s2sAuthRequest()
+                .header("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE)
+                .multiPart(
+                        "files",
+                        "test.xltx",
+                        ClassLoader.getSystemResourceAsStream(docName),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.template"
+                )
+                .multiPart("classification", "PUBLIC")
+                .request("POST", getDmApiUrl() + "/documents")
+                .getBody()
+                .jsonPath()
+                .get("_embedded.documents[0]._links.self.href");
+    }
+
+    private String uploadPptx(String docName) {
+        return s2sAuthRequest()
+                .header("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE)
+                .multiPart(
+                        "files",
+                        "test.pptx",
+                        ClassLoader.getSystemResourceAsStream(docName),
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                )
+                .multiPart("classification", "PUBLIC")
+                .request("POST", getDmApiUrl() + "/documents")
+                .getBody()
+                .jsonPath()
+                .get("_embedded.documents[0]._links.self.href");
+    }
+
+    private String uploadPpsx(String docName) {
+        return s2sAuthRequest()
+                .header("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE)
+                .multiPart(
+                        "files",
+                        "test.ppsx",
+                        ClassLoader.getSystemResourceAsStream(docName),
+                        "application/vnd.openxmlformats-officedocument.presentationml.slideshow"
+                )
+                .multiPart("classification", "PUBLIC")
+                .request("POST", getDmApiUrl() + "/documents")
+                .getBody()
+                .jsonPath()
+                .get("_embedded.documents[0]._links.self.href");
+    }
+
+    private String uploadPPT(String docName) {
+        return s2sAuthRequest()
+                .header("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE)
+                .multiPart("files", "test.ppt", ClassLoader.getSystemResourceAsStream(docName), "application/vnd.ms-powerpoint")
+                .multiPart("classification", "PUBLIC")
+                .request("POST", getDmApiUrl() + "/documents")
+                .getBody()
+                .jsonPath()
+                .get("_embedded.documents[0]._links.self.href");
+    }
+
+    private String uploadXlsx(String docName) {
+        return s2sAuthRequest()
+                .header("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE)
+                .multiPart(
+                        "files",
+                        "test.xlsx",
+                        ClassLoader.getSystemResourceAsStream(docName),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                .multiPart("classification", "PUBLIC")
+                .request("POST", getDmApiUrl() + "/documents")
+                .getBody()
+                .jsonPath()
+                .get("_embedded.documents[0]._links.self.href");
     }
 
     public BundleDTO getTestBundleWithDuplicateBundleDocuments() {
@@ -424,5 +578,42 @@ public class TestUtil {
 
     public void setDmApiUrl(String dmApiUrl) {
         this.dmApiUrl = dmApiUrl;
+    }
+
+
+    public RequestSpecification emptyIdamAuthRequest() {
+        return s2sAuthRequest()
+                .header("Authorization", null);
+    }
+
+    public RequestSpecification emptyIdamAuthAndEmptyS2SAuth() {
+        return RestAssured
+                .given()
+                .header("ServiceAuthorization", null)
+                .header("Authorization", null);
+    }
+
+    public RequestSpecification validAuthRequestWithEmptyS2SAuth() {
+        return emptyS2sAuthRequest().header("Authorization", idamAuth);
+    }
+
+    public RequestSpecification validS2SAuthWithEmptyIdamAuth() {
+        return s2sAuthRequest().header("Authorization", null);
+    }
+
+    private RequestSpecification emptyS2sAuthRequest() {
+        return RestAssured.given().header("ServiceAuthorization", null);
+    }
+
+    public RequestSpecification invalidIdamAuthrequest() {
+        return s2sAuthRequest().header("Authorization", "invalidIDAMAuthRequest");
+    }
+
+    public RequestSpecification invalidS2SAuth() {
+        return invalidS2sAuthRequest().header("Authorization", idamAuth);
+    }
+
+    private RequestSpecification invalidS2sAuthRequest() {
+        return RestAssured.given().header("ServiceAuthorization", "invalidS2SAuthorization");
     }
 }
