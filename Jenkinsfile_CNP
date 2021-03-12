@@ -14,6 +14,8 @@ properties([
 
 @Library("Infrastructure")
 
+import uk.gov.hmcts.contino.GradleBuilder
+
 def type = "java"
 def product = "em"
 def component = "stitching"
@@ -42,17 +44,22 @@ env.OPEN_ID_API_BASE_URI = 'https://idam-web-public.demo.platform.hmcts.net/o'
 env.S2S_BASE_URI = 'http://rpe-service-auth-provider-demo.service.core-compute-demo.internal'
 env.IDAM_WEBSHOW_WHITELIST = 'https://em-show-aat.service.core-compute-aat.internal/oauth2/callback'
 env.DM_STORE_APP_URL = 'http://dm-store-demo.service.core-compute-demo.internal'
-env.DOCMOSIS_ENDPOINT = 'https://docmosis-development.platform.hmcts.net/rs/convert'
+env.DOCMOSIS_ENDPOINT = 'https://docmosis.demo.platform.hmcts.net/rs/convert'
+env.PACT_BROKER_FULL_URL = 'https://pact-broker.platform.hmcts.net'
 
 def vaultOverrides = [
         'preview' : 'aat',
         'spreview': 'saat'
 ]
 
+GradleBuilder builder = new GradleBuilder(this, product)
+
 withPipeline(type , product, component) {
     enableDbMigration('em-stitching')
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
+    enableAksStagingDeployment()
+    disableLegacyDeployment()
     onMaster {
         after('test') {
             sh '''
