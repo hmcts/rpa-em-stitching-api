@@ -7,7 +7,13 @@ import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.em.stitching.domain.enumeration.TaskState;
 import uk.gov.hmcts.reform.em.stitching.rest.errors.BadRequestAlertException;
 import uk.gov.hmcts.reform.em.stitching.rest.util.HeaderUtil;
@@ -59,13 +65,12 @@ public class DocumentTaskResource {
             @ApiResponse(code = 403, message = "Forbidden"),
     })
     @PostMapping("/document-tasks")
-    ////@Timed
     public ResponseEntity<DocumentTaskDTO> createDocumentTask(
             @Valid @RequestBody DocumentTaskDTO documentTaskDTO,
             @RequestHeader(value = "Authorization") String authorisationHeader,
             HttpServletRequest request) throws URISyntaxException, DocumentTaskProcessingException {
 
-        log.info("REST request to save DocumentTask : {}, with headers {}", documentTaskDTO.toString(),
+        log.debug("REST request to save DocumentTask : {}, with headers {}", documentTaskDTO.toString(),
                 Arrays.toString(Collections.toArray(request.getHeaderNames(), new String[]{})));
 
         if (Objects.nonNull(documentTaskDTO.getId())) {
@@ -84,7 +89,6 @@ public class DocumentTaskResource {
         } catch (RuntimeException e) {
             final Optional<Throwable> rootCause = Stream.iterate(e, Throwable::getCause)
                     .filter(excep -> excep.getCause() == null).findFirst();
-            log.info("Error while mapping entities for DocumentTask : {} ", documentTaskDTO, e);
 
             if (rootCause.isPresent() && rootCause.get() instanceof ConstraintViolationException) {
                 ConstraintViolationException constraintViolationException = (ConstraintViolationException) rootCause.get();
@@ -115,7 +119,6 @@ public class DocumentTaskResource {
             @ApiResponse(code = 404, message = "Not Found"),
     })
     @GetMapping("/document-tasks/{id}")
-    //@Timed
     public ResponseEntity<DocumentTaskDTO> getDocumentTask(@PathVariable Long id) {
         log.debug("REST request to get DocumentTask : {}", id);
         Optional<DocumentTaskDTO> documentTaskDTO = documentTaskService.findOne(id);
