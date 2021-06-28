@@ -1,6 +1,8 @@
 spring:
   application:
     name: EM Stitching API
+  config:
+    import: "optional:configtree:/mnt/secrets/em-stitching/"
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQL94Dialect
     database: postgresql
@@ -19,7 +21,7 @@ spring:
     enabled: ${ENABLE_LIQUIBASE:false}
     change-log: classpath:/db/db.changelog-master.xml
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/emstitch}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/emstitch}
     username: ${SPRING_DATASOURCE_USERNAME:shared}
     password: ${SPRING_DATASOURCE_PASSWORD:shared}
     tomcat:
@@ -52,8 +54,8 @@ spring:
 
 docmosis:
   accessKey: ${DOCMOSIS_ACCESS_KEY:SOMETHING}
-  convert.endpoint: ${DOCMOSIS_ENDPOINT:https://docmosis-development.platform.hmcts.net/rs/convert}
-  render.endpoint: ${DOCMOSIS_RENDER_ENDPOINT:https://docmosis-development.platform.hmcts.net/rs/render}
+  convert.endpoint: ${DOCMOSIS_ENDPOINT:https://docmosis.aat.platform.hmcts.net/rs/convert}
+  render.endpoint: ${DOCMOSIS_RENDER_ENDPOINT:https://docmosis.aat.platform.hmcts.net/rs/render}
 
 management:
   endpoint:
